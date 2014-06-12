@@ -1,2 +1,2 @@
-local CC  = ColossalConflict:new()
-CC:InitGamemode()
+local CC  = CCGamemode:new()
+CC:InitGameMode()

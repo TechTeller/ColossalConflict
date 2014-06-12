@@ -1,4 +1,13 @@
- "AddonInfo"
+"AddonInfo"
 {
-     addonID                 137                                        // Unique ID for this addon
+	"addonSteamAppID"	"1337"
+	"addontitle"	"Colossal Conflict"
+	"addonversion"	"0.1"
+	"addontagline"	"Tagline goes here"
+	"addonauthor"	"TechTeller"
+	"addonSteamGroupName"	""
+	"addonauthorSteamID"	""
+	"addonContent_Campaign"	"0"
+	"addonURL0"	"https://github.com/techteller/ColossalConflict"
+	"addonDescription"	"Description"
 }

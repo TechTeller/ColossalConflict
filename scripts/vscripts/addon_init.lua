@@ -1,4 +1,4 @@
---[[ This chunk of code forces the reloading of all modules when we reload script.
+-- This chunk of code forces the reloading of all modules when we reload script.
 if g_reloadState == nil then
     g_reloadState = {}
     for k,v in pairs( package.loaded ) do
@@ -10,23 +10,44 @@ else
             package.loaded[k] = nil
         end
     end
-end]]
+end
 
-
-
-local function loadModule(name)
-    local status, err = pcall(function()
-        -- Load the module
-        require(name)
-    end)
-
-    if not status then
-        -- Tell the user about it
-        print('WARNING: '..name..' failed to load!')
-        print(err)
+-- A function to re-lookup a function by name every time.
+function Dynamic_Wrap( mt, name )
+    if Convars:GetFloat( 'developer' ) == 1 then
+        local function w(...) return mt[name](...) end
+        return w
+    else
+        return mt[name]
     end
 end
 
-print ( '[[REFLEX]] test' )
+function completeHack(name, func, delay, scope)
+    local thinker = Entities:FindAllByClassname('dota_base_game_mode')[1]
+    local n = '2'
+    local doit = true
+    local function thinkFix()
+        if not doit then return end
 
-loadModule ( 'ColossalConflict')
+        -- Requeue this think
+        thinker:SetContextThink(name..n, thinkFix, delay)
+
+        -- Cycle events
+        if n == '' then
+            n = '2'
+        else
+            n = ''
+        end
+
+        -- Run normal think
+        func(scope)
+    end
+
+    thinker:SetContextThink(name, thinkFix, delay)
+
+    return function()
+        doit = false
+    end
+end
+
+require( "ColossalConflict" )
