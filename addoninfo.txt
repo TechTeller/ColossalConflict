@@ -1,0 +1,4 @@
+ "AddonInfo"
+{
+     addonID                 137                                        // Unique ID for this addon
+}
