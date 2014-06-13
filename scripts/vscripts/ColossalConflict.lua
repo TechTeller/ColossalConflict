@@ -34,15 +34,18 @@ FOOD_COUNT = 0
 
 --User Data
 
-vPlayers = {}
-vRadiant = {}
-vDire = {}
-vUserIds = {}
+Radiant = {}
+Dire = {}
+Players = {}
+SteamIDs = {}
+
 
 nConnected = 0
-
+timers = {}
 --Options
 USE_LOBBY = false
+
+Gamemode = nil
 
 --------------------------------------------------------------------------------
 function CCGamemode:InitGameMode()
@@ -63,72 +66,119 @@ function CCGamemode:InitGameMode()
 	print('Test Message')
 
 	--Hooks (Do game event stuff)
-	ListenToGameEvent('player_connect_full', Dynamic_Wrap(CCGamemode, 'AssignPlayersToTeam'), self)
+	--ListenToGameEvent('player_connect_full', Dynamic_Wrap(CCGamemode, 'AssignPlayersToTeam'), self)
+	ListenToGameEvent('player_connect_full', Dynamic_Wrap(CCGamemode, 'AssignPlayerToTeam'), self)
 
-	self.thinkHookStop = completeHack( "CCGamemode", Dynamic_Wrap( CCGamemode, 'Think' ), 0.25, self)
+	  -- Fill server with fake clients
+  	Convars:RegisterCommand('fake', function()
+    -- Check if the server ran it
+    if not Convars:GetCommandClient() or DEBUG then
+      -- Create fake Players
+      SendToServerConsole('dota_create_fake_clients')
+        
+      self:CreateTimer('assign_fakes', {
+        endTime = Time(),
+        callback = function(CC, args)
+          for i=0, 9 do
+            -- Check if this player is a fake one
+            if PlayerResource:IsFakeClient(i) then
+              -- Grab player instance
+              local ply = PlayerResource:GetPlayer(i)
+              -- Make sure we actually found a player instance
+              if ply then
+                CreateHeroForPlayer('npc_dota_hero_axe', ply)
+              end
+            end
+          end
+        end})
+    end
+  end, 'Connects and assigns fake Players.', 0)
+
+  	PrecacheUnitByName('npc_precache_everything')
 end
----------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------
+---------------------------------------------------------------------------------	
 
 function CCGamemode:Think()
-	-- Check for players being connected.
-	if GameRules:State_Get() == DOTA_GAMERULES_STATE_GAME_IN_PROGRESS then
-		local bAnyPlayerConnected = false
-		for nPlayerID = 0, DOTA_MAX_PLAYERS-1 do
-			if PlayerResource:GetTeam( nPlayerID ) == DOTA_TEAM_GOODGUYS then
-				-- If a player is connected (2) then we're ok
-				if PlayerResource:GetConnectionState( nPlayerID ) == 2 then
-					bAnyPlayerConnected = true
-				end
-			end
-		end
-		if not bAnyPlayerConnected then
-			Msg( "No players are connected, setting the winner to DOTA_TEAM_BADGUYS...\n" )
-			GameRules:SetGameWinner( DOTA_TEAM_BADGUYS )
-		end
-	end
 
 	if GameRules:State_Get() == DOTA_GAMERULES_STATE_HERO_SELECTION then
-		for nPlayerID = 0, DOTA_MAX_PLAYERS-1 do
-			if PlayerResource:GetNthPlayerIDOnTeam(nPlayerID, DOTA_TEAM_GOODGUYS) then
-			end
-		end
+
 	end
+	  -- If the game's over, it's over.
+  if GameRules:State_Get() >= DOTA_GAMERULES_STATE_POST_GAME then
+    return
+  end
+
+  -- Track game time, since the dt passed in to think is actually wall-clock time not simulation time.
+  local now = GameRules:GetGameTime()
+  --print("now: " .. now)
+  if CCGamemode.t0 == nil then
+    CCGamemode.t0 = now
+  end
+
+  local dt = now - CCGamemode.t0
+  CCGamemode.t0 = now
+
+  --CCGameMode:thinkState( dt )
+
+  -- Process timers
+  for k,v in pairs(CCGamemode.timers) do
+    local bUseGameTime = false
+    if v.useGameTime and v.useGameTime == true then
+      bUseGameTime = true;
+    end
+    -- Check if the timer has finished
+    if (bUseGameTime and GameRules:GetGameTime() > v.endTime) or (not bUseGameTime and Time() > v.endTime) then
+      -- Remove from timers list
+      CCGamemode.timers[k] = nil
+
+      -- Run the callback
+      local status, nextCall = pcall(v.callback, CCGameMode, v)
+
+      -- Make sure it worked
+      if status then
+        -- Check if it needs to loop
+        if nextCall then
+          -- Change it's end time
+          v.endTime = nextCall
+          CCGamemode.timers[k] = v
+        end
+
+      else
+        -- Nope, handle the error
+        CCGamemode:HandleEventError('Timer', k, nextCall)
+      end
+    end
+  end
+
+  return THINK_TIME
 end
 
 ---------------------------------------------------------------------------------
 
-function CCGamemode:AssignPlayersToTeam( keys )
-
+function CCGamemode:AssignPlayerToTeam( keys )
 	self:CaptureGameMode()
-	local entIndex = keys.index + 1
-	local ply = EntIndexToHScript( entIndex )
-	local playerID = ply:GetPlayerID()
+
+	local plIndex = keys.index + 1
+	local player = EntIndexToHScript(plIndex)
+	local playerID = player:GetPlayerID()
+
 	nConnected = nConnected + 1
 
 	if PlayerResource:IsBroadcaster(playerID) then
 		return
 	end
 
-	if vPlayers[playerID] ~= nil then
-		vUserIds[playerID] = nil
-		vUserIds[keys.userid] = ply
+	if #Radiant > #Dire then
+		player:SetTeam(DOTA_TEAM_BADGUYS)
+		table.insert(Dire, player)
+	else
+		player:SetTeam(DOTA_TEAM_GOODGUYS)
+		table.insert(Radiant, player)
 	end
-
-	if not USE_LOBBY and playerID == -1 then
-		if #vRadiant > #vDire then
-			ply:SetTeam(DOTA_TEAM_BADGUYS)
-			ply:__KeyValueFromInt('teamnumber', DOTA_TEAM_BADGUYS)
-      		table.insert (vDire, ply)
-      	else
-      		ply:SetTeam(DOTA_TEAM_GOODGUYS)
-      		ply:__KeyValueFromInt('teamnumber', DOTA_TEAM_GOODGUYS)
-      		table.insert (vRadiant, ply)
-		end
-		playerID = ply:GetPlayerID()
-	end
+	playerID = player:GetPlayerID()
 end
+
+----------------------------------------------------------------------------------
 
 function CCGamemode:CaptureGameMode()
   if GameMode == nil then
@@ -146,6 +196,6 @@ function CCGamemode:CaptureGameMode()
     GameRules:SetHeroMinimapIconSize( 300 )
 
     print( 'Beginning Think' ) 
-    GameMode:SetContextThink("CCThink", Dynamic_Wrap( CCGamemode, 'Think' ), 0.25 )
+    GameMode:SetContextThink("CCThink", Dynamic_Wrap( CCGamemode, 'Think' ), 0.1 )
   end
 end
