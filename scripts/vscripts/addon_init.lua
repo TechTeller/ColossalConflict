@@ -51,3 +51,8 @@ function completeHack(name, func, delay, scope)
 end
 
 require( "ColossalConflict" )
+require( "Units" )
+require( "timers" )
+require( "BuildingData" )
+require( "ResourceManager" )
+require( "playerdata" )

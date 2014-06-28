@@ -18,30 +18,23 @@ end
 --------------------------------------------------------------------------------
 
 --Constants
-MAX_UNITS_UNDER_CONTROL = 5
+STARTER_CREEPS = 5
 LUMBER_REGENERATE_TIME = 120
 MAX_LEVEL = 10
-
---------------------------------------------------------------------------------
-
---Resources
-LUMBER_COUNT = 0
-GOLD_COUNT = 0
-STONE_COUNT = 0
-FOOD_COUNT = 0
+MAX_PLAYERS = 2
 
 --------------------------------------------------------------------------------
 
 --User Data
 
-Radiant = {}
-Dire = {}
-Players = {}
-SteamIDs = {}
+Radiant = 0
+Dire = 0
 
+Resources = {}
 
 nConnected = 0
-timers = {}
+availableSpawnIndex = 0
+CCGamemode.timers = {}
 --Options
 USE_LOBBY = false
 
@@ -63,38 +56,15 @@ function CCGamemode:InitGameMode()
 	GameRules:SetPostGameTime( 60.0 )
 	GameRules:SetTreeRegrowTime( LUMBER_REGENERATE_TIME )
 
-	print('Test Message')
+	print('Initializing ColossalConflict')
 
 	--Hooks (Do game event stuff)
-	--ListenToGameEvent('player_connect_full', Dynamic_Wrap(CCGamemode, 'AssignPlayersToTeam'), self)
-	ListenToGameEvent('player_connect_full', Dynamic_Wrap(CCGamemode, 'AssignPlayerToTeam'), self)
+	ListenToGameEvent("player_connect_full", Dynamic_Wrap(CCGamemode, 'AssignPlayerToTeam'), self)
+	ListenToGameEvent("npc_spawned", Dynamic_Wrap(CCGamemode, 'OnUnitSpawn'), self)
+	ListenToGameEvent("npc_killed", Dynamic_Wrap(CCGamemode, 'OnUnitKilled'), self)
+  ListenToGameEvent("entity_killed", Dynamic_Wrap(CCGamemode, 'OnEntityKilled'), self)
 
-	  -- Fill server with fake clients
-  	Convars:RegisterCommand('fake', function()
-    -- Check if the server ran it
-    if not Convars:GetCommandClient() or DEBUG then
-      -- Create fake Players
-      SendToServerConsole('dota_create_fake_clients')
-        
-      self:CreateTimer('assign_fakes', {
-        endTime = Time(),
-        callback = function(CC, args)
-          for i=0, 9 do
-            -- Check if this player is a fake one
-            if PlayerResource:IsFakeClient(i) then
-              -- Grab player instance
-              local ply = PlayerResource:GetPlayer(i)
-              -- Make sure we actually found a player instance
-              if ply then
-                CreateHeroForPlayer('npc_dota_hero_axe', ply)
-              end
-            end
-          end
-        end})
-    end
-  end, 'Connects and assigns fake Players.', 0)
-
-  	PrecacheUnitByName('npc_precache_everything')
+  PrecacheUnitByName('npc_precache_everything')
 end
 ---------------------------------------------------------------------------------	
 
@@ -118,7 +88,7 @@ function CCGamemode:Think()
   local dt = now - CCGamemode.t0
   CCGamemode.t0 = now
 
-  --CCGameMode:thinkState( dt )
+  --CCGamemode:thinkState( dt )
 
   -- Process timers
   for k,v in pairs(CCGamemode.timers) do
@@ -132,7 +102,7 @@ function CCGamemode:Think()
       CCGamemode.timers[k] = nil
 
       -- Run the callback
-      local status, nextCall = pcall(v.callback, CCGameMode, v)
+      local status, nextCall = pcall(v.callback, CCGamemode, v)
 
       -- Make sure it worked
       if status then
@@ -158,24 +128,32 @@ end
 function CCGamemode:AssignPlayerToTeam( keys )
 	self:CaptureGameMode()
 
-	local plIndex = keys.index + 1
-	local player = EntIndexToHScript(plIndex)
-	local playerID = player:GetPlayerID()
+    local entIndex = keys.index + 1;
+    local ply = EntIndexToHScript(entIndex);
+    if (Radiant < 5) then
+        ply:SetTeam(DOTA_TEAM_GOODGUYS);
+        Radiant = Radiant + 1;
+    else
+        ply:SetTeam(DOTA_TEAM_BADGUYS);
+        Dire = self.direPlayers + 1;
+    end
+    nConnected = nConnected + 1;
+    CreateHeroForPlayer("npc_dota_hero_wisp", ply);
 
-	nConnected = nConnected + 1
+    --we must add a delay before we move the hero
+    CreateTimer("SpawnPlayer"..entIndex, DURATION, {
+        duration = 1,
+        player = ply,
 
-	if PlayerResource:IsBroadcaster(playerID) then
-		return
-	end
+        callback = function(timer)
+            local hero = ply:GetAssignedHero();
+            InitalizeHero(ply:GetPlayerID(), hero);
 
-	if #Radiant > #Dire then
-		player:SetTeam(DOTA_TEAM_BADGUYS)
-		table.insert(Dire, player)
-	else
-		player:SetTeam(DOTA_TEAM_GOODGUYS)
-		table.insert(Radiant, player)
-	end
-	playerID = player:GetPlayerID()
+            playerSpawnIndexes[ply:GetPlayerID()] = ply:GetPlayerID() + 1;
+            table.insert(players, ply);
+            self.availableSpawnIndex = self.availableSpawnIndex + 1;
+        end
+    });
 end
 
 ----------------------------------------------------------------------------------
@@ -192,10 +170,18 @@ function CCGamemode:CaptureGameMode()
     GameMode:SetUseCustomHeroLevels ( true )
     GameMode:SetCustomHeroMaxLevel ( MAX_LEVEL )
     GameMode:SetTopBarTeamValuesOverride ( true )
+    GameMode:ClientLoadGridNav()
+
+    InitResources()
 
     GameRules:SetHeroMinimapIconSize( 300 )
 
     print( 'Beginning Think' ) 
     GameMode:SetContextThink("CCThink", Dynamic_Wrap( CCGamemode, 'Think' ), 0.1 )
   end
+end
+
+function InitResources()
+  InitRadiantResources()
+  InitDireResources()
 end

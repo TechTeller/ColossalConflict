@@ -1,0 +1,56 @@
+"DOTAAbilities"
+{
+    "item_choptree"
+    {
+        // General
+        // ------------------------------------------------------------------------------------------------------------
+        "AbilityBehavior"                               "DOTA_ABILITY_BEHAVIOR_POINT_TARGET"
+        "BaseClass"                                     "ability_choptree"
+        "ID"                                            "2003"
+        "AbilityName"                                   "item_placebuilding"
+          
+        // Stats
+        //-------------------------------------------------------------------------------------------------------------
+        "AbilityCastRange"                              "GLOBAL"
+        "AbilityCastPoint"                              "0.0"
+             
+        "BuildingName"                                  "npc_dota_goodguys_tower1_top"
+        "PreventBlocking"                               "1"
+             
+        "AbilitySpecial"
+        {
+            "01"
+            {
+                "var_type"                              "FIELD_INTEGER"
+                "alignment_grid_size"                           "3"
+            }
+            "02"
+            {
+                "var_type"                              "FIELD_INTEGER"
+                "squares_per_side"                              "2"
+            }
+            "03"
+            {
+                "var_type"                              "FIELD_INTEGER"
+                "building_size"                         "1"
+            }
+        }
+ 
+        "ItemCost"                "90"
+        "ItemShopTags"            "consumable"
+        "ItemQuality"             "consumable"
+        "ItemStackable"           "1"
+        "ItemShareability"        "ITEM_FULLY_SHAREABLE_STACKING"
+        "ItemPermanent"           "1"
+        "ItemInitialCharges"      "1000"
+        "SideShop"                "1"
+    }
+
+    "item_lumber"
+    {
+        "ID"                                            "2931"
+        "BaseClass"                                     ""
+        "Model"                                         "models/props_cc/fof_log_prop.mdl"
+        "AbilityName"                                   "Lumber"
+    }
+}

@@ -1,0 +1,24 @@
+"GlobalLitSimple"
+{
+	"$basetexture" "fof_log_prop"
+                "$normalmap"  "fof_log_prop_normal"
+ 	"$maskmap1"  "fof_log_prop_mask1"
+	"$maskmap2"  "fof_log_prop_mask2"
+                "$model" 1
+
+	
+	$SPECULAREXPONENT 75
+	$SPECULARSCALE 5
+	$SPECULARCOLOR "[1 1 1]"
+
+	$SPECULAR_BLOOM_SCALE  .4
+	$SPECULAR_BLOOM_COLOR "[1 1 1]"
+	$SPECULAR_BLOOM_SHIFT 0
+
+	$RIMLIGHTCOLOR "[2 .3 .1]"
+	$RIMLIGHTSCALE 1
+
+	$AMBIENTSCALE 1
+	$IgnoreBudgetCheck 1
+
+}

@@ -1,0 +1,105 @@
+
+// Dota Abilities Override File
+"DOTAAbilities"
+{
+
+	"Version"		"1"
+
+	"ability_choptree"
+	{
+		// General
+		//-------------------------------------------------------------------------------------------------------------
+		//"ID"							"1001"														// unique ID number for this item.  Do not change this once established or it will invalidate collected stats.
+		"AbilityBehavior"				"DOTA_ABILITY_BEHAVIOR_UNIT_TARGET | DOTA_ABILITY_BEHAVIOR_CHANNELLED"
+		"AbilityUnitTargetTeam"			"DOTA_UNIT_TARGET_TEAM_CUSTOM"
+		"AbilityUnitTargetType"			"DOTA_UNIT_TARGET_TREE"
+		"BaseClass"						"ability_datadriven"
+		"AbilityTextureName"			"abaddon_borrowed_time"
+
+		// Stats
+		//-------------------------------------------------------------------------------------------------------------
+		"AbilityCastRange"				"350"
+		"AbilityCastPoint"				"0.0"
+		"AbilityCooldown"				"5.0"
+		"AbilityChannelTime"			"3"
+		"AbilityCastAnimation"			"ACT_DOTA_DISABLED"
+
+		"precache"
+		{
+		//Precache Stuff for this ability
+		}
+
+		//Ability Info
+		//---------------------------------------------------------------------------------------------------------------
+		"AbilityManaCost"				"0"
+		"ItemCost"						"0"
+		"ItemInitialCharges"			"0"
+		"ItemCombinable"				"1"
+		"ItemPermanent"					"1"
+		"ItemStackable"					"0"
+		"ItemRecipe"					"0"
+		"ItemDroppable"					"1"
+		"ItemPurchasable"				"0"
+		"ItemSellable"					"1"
+		"ItemRequiresCharges"			"0"
+		"ItemKillable"					"1"
+		"ItemDisassemblable"			"0"
+		"ItemShareability"				"ITEM_NOT_SHAREABLE"
+
+		"OnSpellStart"
+		{
+			
+		}
+
+		"OnChannelSucceeded"
+		{
+			"RunScript"
+			{
+				"ScriptFile"			"scripts/vscripts/abilities.lua"
+				"Function"				"DestroyTree"
+				"Caster"				"CASTER"
+				"Target"				"POINT"
+			}
+
+			"RunScript"
+			{
+				"ScriptFile"			"scripts/vscripts/abilities.lua"
+				"Function"				"ChopTree"
+				"Caster"				"CASTER"
+				"Target"				"POINT"
+			}
+		}
+
+		"OnChannelInterrupted"
+		{
+
+		}
+	}
+
+	"ability_destroytree"
+	{
+		"BaseClass"						"enigma_midnight_pulse"
+		"AbilityCooldown"				"0"
+		"AbilityManaCost"				"0"
+		"AbilityCastRange"				"GLOBAL"
+
+		"AbilitySpecial"
+		{
+			"01"
+			{
+				"var_type"					"FIELD_INTEGER"
+				"radius"					"50"
+			}
+			"02"
+			{
+				"var_type"					"FIELD_INTEGER"
+				"damage_percent"			"0"
+			}
+			"03"
+			{
+				"var_type"					"FIELD_FLOAT"
+				"duration"					"0.1"
+			}
+		}
+	}
+}
