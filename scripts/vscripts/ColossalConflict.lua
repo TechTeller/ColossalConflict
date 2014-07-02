@@ -26,17 +26,11 @@ MAX_PLAYERS = 2
 --------------------------------------------------------------------------------
 
 --User Data
-
-Radiant = 0
-Dire = 0
-
+Radiant = nil
+Dire = nil
 Resources = {}
 
 nConnected = 0
-availableSpawnIndex = 0
-CCGamemode.timers = {}
---Options
-USE_LOBBY = false
 
 Gamemode = nil
 
@@ -54,7 +48,7 @@ function CCGamemode:InitGameMode()
 	GameRules:SetHeroSelectionTime( 0.0 )
 	GameRules:SetPreGameTime( 60.0 )
 	GameRules:SetPostGameTime( 60.0 )
-	GameRules:SetTreeRegrowTime( LUMBER_REGENERATE_TIME )
+	GameRules:SetTreeRegrowTime( 999999999.0 )
 
 	print('Initializing ColossalConflict')
 
@@ -63,97 +57,59 @@ function CCGamemode:InitGameMode()
 	ListenToGameEvent("npc_spawned", Dynamic_Wrap(CCGamemode, 'OnUnitSpawn'), self)
 	ListenToGameEvent("npc_killed", Dynamic_Wrap(CCGamemode, 'OnUnitKilled'), self)
   ListenToGameEvent("entity_killed", Dynamic_Wrap(CCGamemode, 'OnEntityKilled'), self)
+  ListenToGameEvent("npc_spawned", Dynamic_Wrap(CCGamemode, 'OnEntitySpawned'), self)
 
   PrecacheUnitByName('npc_precache_everything')
 end
 ---------------------------------------------------------------------------------	
 
 function CCGamemode:Think()
-
-	if GameRules:State_Get() == DOTA_GAMERULES_STATE_HERO_SELECTION then
-
-	end
-	  -- If the game's over, it's over.
-  if GameRules:State_Get() >= DOTA_GAMERULES_STATE_POST_GAME then
-    return
-  end
-
-  -- Track game time, since the dt passed in to think is actually wall-clock time not simulation time.
-  local now = GameRules:GetGameTime()
-  --print("now: " .. now)
-  if CCGamemode.t0 == nil then
-    CCGamemode.t0 = now
-  end
-
-  local dt = now - CCGamemode.t0
-  CCGamemode.t0 = now
-
-  --CCGamemode:thinkState( dt )
-
-  -- Process timers
-  for k,v in pairs(CCGamemode.timers) do
-    local bUseGameTime = false
-    if v.useGameTime and v.useGameTime == true then
-      bUseGameTime = true;
+    local gt = GameRules:GetGameTime();
+    GAME_IS_PAUSED = (gt == lastGameTime);
+    lastGameTime = gt;
+    if not GAME_IS_PAUSED then
+        UpdateTimers();
     end
-    -- Check if the timer has finished
-    if (bUseGameTime and GameRules:GetGameTime() > v.endTime) or (not bUseGameTime and Time() > v.endTime) then
-      -- Remove from timers list
-      CCGamemode.timers[k] = nil
-
-      -- Run the callback
-      local status, nextCall = pcall(v.callback, CCGamemode, v)
-
-      -- Make sure it worked
-      if status then
-        -- Check if it needs to loop
-        if nextCall then
-          -- Change it's end time
-          v.endTime = nextCall
-          CCGamemode.timers[k] = v
-        end
-
-      else
-        -- Nope, handle the error
-        CCGamemode:HandleEventError('Timer', k, nextCall)
-      end
-    end
-  end
-
-  return THINK_TIME
 end
 
 ---------------------------------------------------------------------------------
 
-function CCGamemode:AssignPlayerToTeam( keys )
-	self:CaptureGameMode()
+local treesinit = false;
 
-    local entIndex = keys.index + 1;
-    local ply = EntIndexToHScript(entIndex);
-    if (Radiant < 5) then
-        ply:SetTeam(DOTA_TEAM_GOODGUYS);
-        Radiant = Radiant + 1;
-    else
-        ply:SetTeam(DOTA_TEAM_BADGUYS);
-        Dire = self.direPlayers + 1;
+function CCGamemode:AssignPlayerToTeam( keys )	
+  self:CaptureGameMode()
+
+  local entIndex = keys.index + 1;
+   local ply = EntIndexToHScript(entIndex);
+  if (nConnected < 1) then
+      ply:SetTeam(DOTA_TEAM_GOODGUYS);
+      Radiant = ply
+      local data = GetRadiantResources()
+      FireGameEvent('cc_player_resource_details', { playerID = Radiant:GetPlayerID(), lumber = data["Lumber"], gold = data["Gold"], stone = data["Stone"], food = data["Food"]})
+  else
+      ply:SetTeam(DOTA_TEAM_BADGUYS);
+      Dire = ply
+      local data  = GetDireResources()
+      FireGameEvent('cc_player_resource_details', { playerID = Dire:GetPlayerID(), lumber = data["Lumber"], gold = data["Gold"], stone = data["Stone"], food = data["Food"]})
+  end
+  nConnected = nConnected + 1;
+  local hero = CreateHeroForPlayer("npc_dota_hero_wisp", ply);
+  hero:SetAbilityPoints(0)
+
+    if treesinit == false then 
+    for k,v in pairs(Entities:FindAllByClassname("ent_dota_tree")) do 
+        local u = CreateUnitByName( "npc_tree_dummy", Vector(0,0,0), false, nil, nil, DOTA_TEAM_NEUTRALS)
+        u:SetOrigin(v:GetOrigin())
+        u:RemoveModifierByName("modifier_invulnerable")
+        u:AddNewModifier(u, nil, "modifier_disarmed", {duration = -1})
     end
-    nConnected = nConnected + 1;
-    CreateHeroForPlayer("npc_dota_hero_wisp", ply);
+    treesinit = true
 
-    --we must add a delay before we move the hero
-    CreateTimer("SpawnPlayer"..entIndex, DURATION, {
-        duration = 1,
-        player = ply,
-
-        callback = function(timer)
-            local hero = ply:GetAssignedHero();
-            InitalizeHero(ply:GetPlayerID(), hero);
-
-            playerSpawnIndexes[ply:GetPlayerID()] = ply:GetPlayerID() + 1;
-            table.insert(players, ply);
-            self.availableSpawnIndex = self.availableSpawnIndex + 1;
-        end
-    });
+    --Remove invulnerabilities from all buildings on game start
+    for k,v in pairs(Entities:FindAllByClassname("npc_dota_building")) do
+        v:RemoveModifierByName("modifier_invulnerable")
+    end
+  end
 end
 
 ----------------------------------------------------------------------------------

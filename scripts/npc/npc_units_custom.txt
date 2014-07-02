@@ -2,7 +2,7 @@
 "DOTAUnits"
 {
 	"Version"	"1"
-  
+
     "npc_cc_good_villager"
 	{
 		// General
@@ -16,7 +16,7 @@
 		// Abilities
 		//----------------------------------------------------------------
 
-		"Ability1"					""			// Ability 1.
+		"Ability1"					"ability_destroytree"			// Ability 1.
 		"Ability2"					""			// Ability 2.
 		"Ability3"					""			// Ability 3.
 		"Ability4"					""			// Ability 4.
@@ -32,16 +32,15 @@
 
 		// Attack
 		//----------------------------------------------------------------
-		"AttackCapabilities"		"DOTA_UNIT_CAP_NO_ATTACK"			// Type of attack - melee, ranged, etc.
-		"AttackDamageMin"			"0"			// Damage range min.
-		"AttackDamageMax"			"0"			// Damage range max.
+		"AttackCapabilities"		"DOTA_UNIT_CAP_MELEE_ATTACK"			// Type of attack - melee, ranged, etc.
+		"AttackDamageMin"			"10"			// Damage range min.
+		"AttackDamageMax"			"10"			// Damage range max.
 		"AttackDamageType"			"DAMAGE_TYPE_ArmorPhysical"
 		"AttackRate"				"1"			// Speed of attack.
 		"AttackAnimationPoint"		"0.5"		// Normalized time in animation cycle to attack.
-		"AttackAcquisitionRange"	"800"		// Range within a target can be acquired.
-		"AttackRange"				"500"		// Range within a target can be attacked.
+		"AttackAcquisitionRange"	"1000"		// Range within a target can be acquired.
+		"AttackRange"				"100"		// Range within a target can be attacked.
 		"ProjectileModel"			"" // Particle system model for projectile.
-		"ProjectileSpeed"			"900"		// Speed of projectile.
 
 		// Attributes
 		//----------------------------------------------------------------
@@ -93,12 +92,66 @@
 		//----------------------------------------------------------------
 		"AttackDesire"				"1.5"		// How much bots want to attack them vs other non-hero things
 	}	
+	
+	"npc_tree_dummy"
+	{
+		"RingRadius"					"50"
+		"ParticleFile"					"particles/units/heroes/hero_furion.pcf"
+		"MovementCapabilities"			"DOTA_UNIT_CAP_MOVE_NONE"
+		"ArmorPhysical"					"0"
+		"AttackDamageMin"				"20"
+		"ModelScale"					"1.0"
+		"Model"							"models/props_tree/tree_pine_01.mdl"
+		"AttributeIntelligenceGain"		"0"
+		"BoundsHullName"				"DOTA_HULL_SIZE_TOWER"
+		"TowerType"						"Normal"
+		"TeamName"						"DOTA_TEAM_NEUTRALS"
+		"AttributeBaseStrength"			"0"
+		"StatusHealthRegen"				"0"
+		"AttackDamageMax"				"20"
+		"BaseClass"						"npc_dota_building"
+		"StatusHealth"					"50"
+		"CombatClassDefend"				"DOTA_COMBAT_CLASS_DEFEND_STRUCTURE"
+		"VisionNighttimeRange"			"1900"
+		"MovementTurnRate"				"1.0"
+	}
 
-  
-  //------------------------------------------------------------------------------------
-  //- This unit can be used to precache different models/particles/sounds              -
-  //- that are needed every game.  Uncomment any model/particle/sound you need to load -
-  //------------------------------------------------------------------------------------
+	"npc_gold_mine"
+	{
+		"BaseClass"						"npc_dota_building"
+		"Model"							"models/props_structures/good_barracks_pool002.mdl"
+		"ArmorPhysical"					"0"
+		"TeamName"						"DOTA_TEAM_NEUTRALS"
+		"StatusHealth"					"50"
+		"CombatClassDefend"				"DOTA_COMBAT_CLASS_DEFEND_STRUCTURE"
+		"BoundsHullName"				"DOTA_HULL_SIZE_TOWER"
+		"TowerType"						"Normal"
+	}
+
+	"npc_stone_mine"
+	{
+		"BaseClass"						"npc_dota_building"
+		"Model"							"models/props_structures/good_barracks_pool002.mdl"
+		"ArmorPhysical"					"0"
+		"TeamName"						"DOTA_TEAM_NEUTRALS"
+		"StatusHealth"					"50"
+		"CombatClassDefend"				"DOTA_COMBAT_CLASS_DEFEND_STRUCTURE"
+		"BoundsHullName"				"DOTA_HULL_SIZE_TOWER"
+		"TowerType"						"Normal"
+	}
+
+	"npc_mine_empty"
+	{
+		"BaseClass"						"npc_dota_building"
+		"Model"							"models/props_structures/good_barracks_pool001.mdl"
+		"ArmorPhysical"					"0"
+		"TeamName"						"DOTA_TEAM_NEUTRALS"
+		"StatusHealth"					"50"
+		"CombatClassDefend"				"DOTA_COMBAT_CLASS_DEFEND_STRUCTURE"
+		"BoundsHullName"				"DOTA_HULL_SIZE_TOWER"
+		"TowerType"						"Normal"
+	}
+
 	"npc_precache_everything"
 	{
 		"BaseClass"					"npc_dota_creep"
@@ -134,7 +187,7 @@
 			//"model"			"models/heroes/invoker/forge_spirit.mdl"
 			//"model"			"models/heroes/lycan/lycan_wolf.mdl"
 			//"model"			"models/heroes/lone_druid/true_form.mdl"
-			//"model"			"models/heroes/undying/undying_flesh_golem.mdl"
+			"model"			"models/heroes/undying/undying_flesh_golem.mdl"
 			"model"			"models/development/invisiblebox.mdl"
 
 			//"particlefile"				"particles/units/heroes/hero_antimage.pcf"
@@ -356,4 +409,5 @@
 			//"soundfile"					"scripts/game_sounds_custom.txt"
 		}
 	}
+
 }

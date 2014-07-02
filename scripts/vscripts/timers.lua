@@ -19,16 +19,17 @@ timers = {};
 DURATION = 0;
 INTERVAL = 1;
 -------------------
+TIMERS_PAUSED = false;
 
 function CreateTimer(name, timerType, timerData)
-	timerData.startTime = Time();
+	timerData.startTime = GameRules:GetGameTime();
 	timerData.name = name;
 	timerData.timerType = timerType;
 
 	if timerType == DURATION then
 		timerData.endTime = timerData.startTime + timerData.duration;
 	elseif timerType == INTERVAL then
-		timerData.nextInterval = Time() + timerData.interval;
+		timerData.nextInterval = timerData.startTime + timerData.interval;
 		if not timerData.executeImmediately then
 			timerData.executeImmediately = false;
 		elseif timerData.executeImmediately then
@@ -47,9 +48,10 @@ end
 
 --this needs to be called every 0.1 seconds or so
 function UpdateTimers()
+	if TIMERS_PAUSED then return end
 	for k, timer in pairs(timers) do
 		if timer.timerType == DURATION then
-			if Time() >= timer.endTime then
+			if GameRules:GetGameTime() >= timer.endTime then
 				timer.callback(timer);
 				DeleteTimer(timer.name);
 			end
@@ -63,9 +65,9 @@ function UpdateTimers()
 						DeleteTimer(timer.name);
 					end
 				end
-			elseif Time() >= timer.nextInterval then
+			elseif GameRules:GetGameTime() >= timer.nextInterval then
 				timer.callback(timer);
-				timer.nextInterval = Time() + timer.interval;
+				timer.nextInterval = GameRules:GetGameTime() + timer.interval;
 				if timer.loops ~= -1 then
 					timer.loops = timer.loops - 1;
 					if timer.loops <= 0 then
@@ -75,6 +77,10 @@ function UpdateTimers()
 			end
 		end
 	end
+end
+
+function TimerExists(name)
+	return timers[name] ~= nil;
 end
 
 function DeleteTimer(name)

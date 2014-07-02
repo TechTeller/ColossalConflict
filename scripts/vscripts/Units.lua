@@ -36,9 +36,6 @@ function CCGamemode:CreateControlledUnit( name , caster, spawner)
 	vSpawnLocation = vSpawnLocation + RandomVector(400)
 	local unit = CreateUnitByName( name, vSpawnLocation, true, nil, nil, caster:GetTeam())
 	unit:SetControllableByPlayer( playerID, true )
-	unit:AddAbility("ability_choptree")
-	local ab = unit:FindAbilityByName( "ability_choptree" )
-	ab:SetLevel( 1 )
 	unit:SetOwner(caster)
 
 	if caster:GetTeam() == DOTA_TEAM_GOODGUYS then

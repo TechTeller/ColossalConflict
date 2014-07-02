@@ -1,6 +1,6 @@
 "AddonInfo"
 {
-	"addonSteamAppID"	"137"
+	"addonSteamAppID"	"1337"
 	"addontitle"	"Colossal Conflict"
 	"addonversion"	"0.1"
 	"addontagline"	"Tagline goes here"

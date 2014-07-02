@@ -1,0 +1,8 @@
+colossalconflict
+{
+	material overviews/colossalconflict	pos_x -5120
+	pos_y 5120	scale 15.300
+	rotate 0
+	zoom 1.0000
+}
+

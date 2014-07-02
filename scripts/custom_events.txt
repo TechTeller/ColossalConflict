@@ -20,6 +20,14 @@
 
 "CustomEvents"
 {
-
+	"cc_player_resource_details"
+	{
+		"playerID"			"short"
+		"team"				"string"
+		"lumber"			"short"
+		"gold"				"short"
+		"stone"				"short"
+		"food"				"short"
+	}
 }
 
